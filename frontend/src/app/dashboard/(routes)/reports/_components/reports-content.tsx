@@ -5,11 +5,15 @@ import {
   IconClockRecord,
   IconLoader2,
   IconRefresh,
+  IconSend,
   IconSettings,
+  IconAlertTriangle,
+  IconProgress,
 } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getAllReportsAction, sendReportAction } from "@/actions/reports/actions";
+import { StatCard } from "@/app/dashboard/_components/stat-card";
 import {
   Pagination,
   PaginationContent,
@@ -29,12 +33,18 @@ export function ReportsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   // Pagination
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [statusCounts, setStatusCounts] = useState({
+    total: 0,
+    sent: 0,
+    failed: 0,
+  });
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -45,10 +55,16 @@ export function ReportsContent() {
       setReports(apiReports);
       setTotalPages(result.totalPages ?? 1);
       setTotal(result.total ?? 0);
+      setStatusCounts({
+        total: result.statusCounts?.total ?? result.total ?? 0,
+        sent: result.statusCounts?.sent ?? 0,
+        failed: result.statusCounts?.failed ?? 0,
+      });
     } catch {
       setReports([]);
       setTotal(0);
       setTotalPages(1);
+      setStatusCounts({ total: 0, sent: 0, failed: 0 });
       setError("Failed to load reports. Please try again.");
     } finally {
       setLoading(false);
@@ -64,6 +80,11 @@ export function ReportsContent() {
   const start = displayedTotal > 0 ? Math.min((pageNumber - 1) * pageSize + 1, displayedTotal) : 0;
   const end = Math.min(pageNumber * pageSize, displayedTotal);
   const pageButtons = buildPageButtons(pageNumber, totalPages);
+
+  // Live summary cards derived from get-all-reports statusCounts
+  const totalReports = statusCounts.total;
+  const sentCount = statusCounts.sent;
+  const failedCount = statusCounts.failed;
 
   return (
     <main className="min-h-screen bg-[oklch(0.06_0.01_145)] px-6 py-8">
@@ -84,6 +105,25 @@ export function ReportsContent() {
             <IconSettings size={16} />
             Report Settings
           </button>
+        </div>
+
+        {/* Summary stats from live report history */}
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <StatCard
+            label="Total Reports"
+            value={totalReports}
+            icon={<IconSend size={16} />}
+          />
+          <StatCard
+            label="Total Reports Sent"
+            value={sentCount}
+            icon={<IconProgress size={16} />}
+          />
+          <StatCard
+            label="Failed to Send"
+            value={failedCount}
+            icon={<IconAlertTriangle size={16} />}
+          />
         </div>
 
         {/* Table Card */}
@@ -164,18 +204,30 @@ export function ReportsContent() {
                       <td className="px-6 py-4">
                         <button
                           type="button"
-                          className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
+                          disabled={resendingId === report.id}
+                          className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors disabled:opacity-50"
                           onClick={async () => {
+                            setResendingId(report.id);
                             try {
                               await sendReportAction(report.id);
                               toast.success("Report resent successfully!");
                               fetchData();
-                            } catch {
-                              toast.error("Failed to resend report.");
+                            } catch (err) {
+                              toast.error(
+                                err instanceof Error
+                                  ? err.message
+                                  : "Failed to resend report.",
+                              );
+                            } finally {
+                              setResendingId(null);
                             }
                           }}
                         >
-                          <IconRefresh size={14} />
+                          {resendingId === report.id ? (
+                            <IconLoader2 size={14} className="animate-spin" />
+                          ) : (
+                            <IconRefresh size={14} />
+                          )}
                           Resend
                         </button>
                       </td>

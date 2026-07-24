@@ -10,6 +10,7 @@ import type { Category } from "@/types/category";
 import type { Transaction, TransactionFilters } from "@/types/transaction";
 import { AddTransactionSheet } from "./add-transaction-sheet";
 import { BulkImportSheet } from "./bulk-import-sheet";
+import { TransactionTrendChart } from "./transaction-trend-chart";
 import { TransactionsDataTable } from "./transactions-data-table";
 
 export function TransactionsContent() {
@@ -181,6 +182,9 @@ export function TransactionsContent() {
             </div>
           </div>
         )}
+
+        {/* Income vs expense trend — sits between header and table */}
+        <TransactionTrendChart />
 
         {/* Data Table */}
         <TransactionsDataTable

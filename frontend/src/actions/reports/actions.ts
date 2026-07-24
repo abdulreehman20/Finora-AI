@@ -2,7 +2,11 @@
 
 import axios from "axios";
 import { cookies } from "next/headers";
-import type { ReportListResponse, ReportSetting } from "@/types/report";
+import type {
+  ReportListResponse,
+  ReportSetting,
+  UpdateReportSettingBody,
+} from "@/types/report";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:7000";
@@ -25,41 +29,69 @@ async function getAxios() {
   });
 }
 
-// ── Get All Reports ───────────────────────────────────────────────────────────
+function toActionError(error: unknown): never {
+  if (axios.isAxiosError(error)) {
+    const message =
+      (error.response?.data as { message?: string } | undefined)?.message ??
+      error.message;
+    throw new Error(message);
+  }
+  throw error instanceof Error ? error : new Error("Unexpected report error");
+}
 
+/** Fetches paginated report history (excludes email content in the UI). */
 export async function getAllReportsAction(pagination?: {
   pageSize?: number;
   pageNumber?: number;
 }): Promise<ReportListResponse> {
-  const params: Record<string, string> = {};
-  if (pagination?.pageSize) params.pageSize = String(pagination.pageSize);
-  if (pagination?.pageNumber) params.pageNumber = String(pagination.pageNumber);
+  try {
+    const params: Record<string, string> = {};
+    if (pagination?.pageSize) params.pageSize = String(pagination.pageSize);
+    if (pagination?.pageNumber)
+      params.pageNumber = String(pagination.pageNumber);
 
-  const api = await getAxios();
-  const { data } = await api.get(`${BASE}/all`, { params });
-  return data;
+    const api = await getAxios();
+    const { data } = await api.get(`${BASE}/all`, { params });
+    return data;
+  } catch (error) {
+    toActionError(error);
+  }
 }
 
-// ── Generate Report ───────────────────────────────────────────────────────────
-
-export async function generateReportAction(from: string, to: string) {
-  const api = await getAxios();
-  const { data } = await api.get(`${BASE}/generate`, { params: { from, to } });
-  return data;
+/** Loads the user's current report scheduling preferences. */
+export async function getReportSettingAction(): Promise<{
+  message: string;
+  setting: ReportSetting | null;
+}> {
+  try {
+    const api = await getAxios();
+    const { data } = await api.get(`${BASE}/setting`);
+    return data;
+  } catch (error) {
+    toActionError(error);
+  }
 }
 
-// ── Update Report Settings ────────────────────────────────────────────────────
-
-export async function updateReportSettingAction(body: Partial<ReportSetting>) {
-  const api = await getAxios();
-  const { data } = await api.put(`${BASE}/update-setting`, body);
-  return data;
+/** Saves toggle / frequency / email override settings. */
+export async function updateReportSettingAction(
+  body: UpdateReportSettingBody,
+) {
+  try {
+    const api = await getAxios();
+    const { data } = await api.put(`${BASE}/update-setting`, body);
+    return data as { message: string; setting: ReportSetting };
+  } catch (error) {
+    toActionError(error);
+  }
 }
 
-// ── Send / Resend Report ──────────────────────────────────────────────────────
-
+/** Resends a previously stored report email by report ID. */
 export async function sendReportAction(reportId: string) {
-  const api = await getAxios();
-  const { data } = await api.post(`${BASE}/resend/${reportId}`);
-  return data;
+  try {
+    const api = await getAxios();
+    const { data } = await api.post(`${BASE}/resend/${reportId}`);
+    return data;
+  } catch (error) {
+    toActionError(error);
+  }
 }

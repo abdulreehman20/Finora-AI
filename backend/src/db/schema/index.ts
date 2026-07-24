@@ -1,4 +1,5 @@
 export * from "./account.schema.js";
+export * from "./budget.schema.js";
 export * from "./categories.schema.js";
 export * from "./chat.history.schema.js";
 export * from "./chat.message.schema.js";

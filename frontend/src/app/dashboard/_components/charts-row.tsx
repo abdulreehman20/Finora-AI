@@ -109,10 +109,12 @@ export function ChartsRow({
               margin={{ top: 5, right: 5, bottom: 0, left: 0 }}
             >
               <defs>
+                {/* Green gradient for income */}
                 <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
+                {/* Red gradient for expenses */}
                 <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />

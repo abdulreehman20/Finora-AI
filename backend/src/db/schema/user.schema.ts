@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { account } from "./account.schema.js";
+import { budget } from "./budget.schema.js";
 import { report } from "./report.schema.js";
 import { reportSetting } from "./report.setting.schema.js";
 import { session } from "./session.schema.js";
@@ -28,4 +29,5 @@ export const userRelations = relations(user, ({ many }) => ({
 	reports: many(report),
 	reportSettings: many(reportSetting),
 	transactions: many(transaction),
+	budgets: many(budget),
 }));

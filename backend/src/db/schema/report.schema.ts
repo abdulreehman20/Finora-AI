@@ -28,6 +28,11 @@ export const report = pgTable(
 		period: text("period").notNull(),
 		sentDate: timestamp("sent_date").notNull(),
 		status: reportStatusEnum("status").default("PENDING").notNull(),
+		/**
+		 * Serialized email payload (JSON) so Resend can reuse content
+		 * without regenerating the report.
+		 */
+		emailContent: text("email_content"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()

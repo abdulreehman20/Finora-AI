@@ -14,6 +14,7 @@ export const getReportEmailTemplate = (
 		availableBalance,
 		savingsRate,
 		topSpendingCategories,
+		budgetBreakdown = [],
 		insights,
 	} = reportData;
 
@@ -27,6 +28,17 @@ export const getReportEmailTemplate = (
     `,
 		)
 		.join("");
+
+	const budgetList =
+		budgetBreakdown.length > 0
+			? budgetBreakdown
+					.map(
+						(b) => `<li>
+      ${b.categoryName} — ${formatCurrency(b.spent)} / ${formatCurrency(b.budgeted)} (${b.percentUsed}% used)
+      </li>`,
+					)
+					.join("")
+			: "<li>No budgets configured for this period.</li>";
 
 	const insightsList = insights
 		.map((insight: string) => `<li>${insight}</li>`)
@@ -79,6 +91,11 @@ export const getReportEmailTemplate = (
                  <h4 style="margin: 0 0 10px; font-size: 16px;">Top Spending Categories</h4>
                  <ul style="padding-left: 20px; margin: 0; font-size: 16px;">
                    ${categoryList}
+                 </ul>
+                 <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;" />
+                 <h4 style="margin: 0 0 10px; font-size: 16px;">Budget Breakdown</h4>
+                 <ul style="padding-left: 20px; margin: 0; font-size: 16px;">
+                   ${budgetList}
                  </ul>
                  <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;" />
                  <h4 style="margin: 0 0 10px; font-size: 16px;">Insights</h4>

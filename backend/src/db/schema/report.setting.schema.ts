@@ -12,8 +12,14 @@ import { user } from "./user.schema.js";
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
 
-export const reportFrequencyEnum = pgEnum("report_frequency", ["MONTHLY"]);
-export const ReportFrequencyEnum = { MONTHLY: "MONTHLY" } as const;
+export const reportFrequencyEnum = pgEnum("report_frequency", [
+	"WEEKLY",
+	"MONTHLY",
+]);
+export const ReportFrequencyEnum = {
+	WEEKLY: "WEEKLY",
+	MONTHLY: "MONTHLY",
+} as const;
 
 export type ReportFrequency = (typeof reportFrequencyEnum.enumValues)[number];
 
@@ -22,11 +28,11 @@ export type ReportFrequency = (typeof reportFrequencyEnum.enumValues)[number];
 /**
  * Stores per-user report scheduling preferences.
  *
- * - `isEnabled`   – whether automated monthly reports are active.
- * - `dayOfMonth`  – day (1–28) on which the monthly report is sent.
- *                   Capped at 28 so it always exists in every month.
- * - `nextReportDate` – next scheduled run date (recalculated after each send).
- * - `lastSentDate`   – timestamp of the last successful report delivery.
+ * - `isEnabled`   – whether automated report emails are active.
+ * - `frequency`   – WEEKLY (Sunday) or MONTHLY (1st of month).
+ * - `email`       – optional override recipient (defaults to signup email).
+ * - `dayOfMonth`  – kept for monthly scheduling metadata (defaults to 1).
+ * - `nextReportDate` / `lastSentDate` – schedule bookkeeping.
  */
 export const reportSetting = pgTable(
 	"report_setting",
@@ -38,11 +44,17 @@ export const reportSetting = pgTable(
 
 		frequency: reportFrequencyEnum("frequency").default("MONTHLY").notNull(),
 
-		/** Whether this user has opted in to automated monthly reports. */
+		/** Whether this user has opted in to automated reports. */
 		isEnabled: boolean("is_enabled").default(false).notNull(),
 
 		/**
-		 * Day of the month (1–28) on which the monthly report cron fires.
+		 * Optional override email for report delivery.
+		 * When null, the user's account signup email is used.
+		 */
+		email: text("email"),
+
+		/**
+		 * Day of the month (1–28) for monthly reports.
 		 * Defaults to the 1st of the month.
 		 */
 		dayOfMonth: integer("day_of_month").default(1).notNull(),

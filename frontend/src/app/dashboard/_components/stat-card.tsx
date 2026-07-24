@@ -24,11 +24,11 @@ export function Trend({
 
 interface StatCardProps {
   label: string;
-  value: string;
-  subLabel: string;
+  value: string | number;
+  subLabel?: string;
   trend?: number;
   trendInverse?: boolean;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   accent?: string;
   extra?: React.ReactNode;
 }
@@ -56,12 +56,14 @@ export function StatCard({
           <p className="text-xs font-medium tracking-wide text-zinc-400 uppercase">
             {label}
           </p>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-zinc-400">
-            {icon}
-          </div>
+          {icon ? (
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-zinc-400">
+              {icon}
+            </div>
+          ) : null}
         </div>
         <p className="mb-1 text-3xl font-bold text-white">{value}</p>
-        <p className="text-xs text-zinc-500">{subLabel}</p>
+        {subLabel ? <p className="text-xs text-zinc-500">{subLabel}</p> : null}
         {(trend !== undefined || extra) && (
           <div className="mt-3 flex items-center gap-2">
             {trend !== undefined && (

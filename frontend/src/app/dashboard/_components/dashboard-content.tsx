@@ -20,6 +20,7 @@ import { DASHBOARD_PRESETS } from "./constants";
 import { SummaryCards } from "./summary-cards";
 import { ChartsRow } from "./charts-row";
 import { RecentTransactions } from "./recent-transaction";
+import { BudgetStatusCard } from "./budget-status-card";
 import { AddTransactionSheet } from "../(routes)/transactions/_components/add-transaction-sheet";
 
 export function DashboardContent() {
@@ -217,8 +218,11 @@ export function DashboardContent() {
           isGated={isGated}
         />
 
-        {/* Recent Transactions — refreshes when txRefreshKey changes */}
-        <RecentTransactions refreshKey={txRefreshKey} />
+        {/* Recent Transactions + Budget Status */}
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_1fr]">
+          <RecentTransactions refreshKey={txRefreshKey} />
+          <BudgetStatusCard />
+        </div>
       </div>
 
       {/* Add Transaction Sheet */}

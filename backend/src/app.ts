@@ -1,8 +1,10 @@
 import cors from "cors";
 import express from "express";
 import { toNodeHandler } from "better-auth/node";
+import { serve } from "inngest/express";
 
 import { auth } from "./lib/auth.js";
+import { functions, inngest } from "./inngest/index.js";
 import { attachUserFromSession } from "./middlewares/auth.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { requestLogger } from "./middlewares/request-logger.middleware.js";
@@ -38,13 +40,22 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 4. Attach user from session (after body parsing)
+// 4. Inngest serve endpoint (must be after JSON middleware)
+app.use(
+  "/api/inngest",
+  serve({
+    client: inngest,
+    functions,
+  }),
+);
+
+// 5. Attach user from session (after body parsing)
 app.use(attachUserFromSession);
 
-// 5. Your other middleware
+// 6. Your other middleware
 app.use(requestLogger);
 
-// 6. Your routes
+// 7. Your routes
 app.get("/", (_req, res) => {
   res.json({ message: "Welcome to Finora Finance AI SaaS API!" });
 });
@@ -53,10 +64,23 @@ app.get("/api/health", (_req, res) => {
   res.json({ message: "API is working!" });
 });
 
+/** Manual smoke-test route — sends `test/hello.world` to the local Inngest Dev Server. */
+app.get("/api/hello", async (_req, res, next) => {
+  try {
+    await inngest.send({
+      name: "test/hello.world",
+      data: { email: "finora@example.com" },
+    });
+    res.json({ message: "Event sent!" });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use("/api", router); // -----> API routes
 app.use("/api/docs", docsRouter); // -----> API documentation route
 
-// 7. Error handler last
+// 8. Error handler last
 app.use(errorHandler);
 
 export default app;
